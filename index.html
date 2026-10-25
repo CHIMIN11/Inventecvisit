@@ -1845,8 +1845,8 @@ const enRules=[
 function toEN(str){const t=str.trim();if(!t||!/[一-鿿]/.test(t))return str;let out=UI_EN[t];
   if(out===undefined)for(const [re,f] of enRules){if(re.test(t)){out=t.replace(re,f);break;}}
   if(out===undefined)return str;const lead=str.match(/^\s*/)[0],trail=str.match(/\s*$/)[0];return lead+out+trail;}
-let LANG='zh';
-try{const v=localStorage.getItem('inventec-lang');LANG=v==='en'||v==='zh'?v:(/^zh/i.test(navigator.language||'zh')?'zh':'en');}catch(e){}
+let LANG='en';
+try{const v=localStorage.getItem('inventec-lang-choice');LANG=v==='zh'?'zh':'en';}catch(e){}   // English by default; a saved choice wins
 const recT=new WeakMap(),recA=new WeakMap(),ATTRS=['aria-label','placeholder','alt','title'];
 function doText(n){let r=recT.get(n);if(!r||n.data!==r.out){r={orig:n.data,out:n.data};recT.set(n,r);}const want=LANG==='en'?toEN(r.orig):r.orig;if(n.data!==want){r.out=want;n.data=want;}}
 function doEl(el){let m=recA.get(el);if(!m){m={};recA.set(el,m);}ATTRS.forEach(a=>{if(!el.hasAttribute(a))return;const v=el.getAttribute(a);let r=m[a];if(!r||v!==r.out){r=m[a]={orig:v,out:v};}const want=LANG==='en'?toEN(r.orig):r.orig;if(v!==want){r.out=want;el.setAttribute(a,want);}});}
@@ -1858,8 +1858,8 @@ new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData')doText(
 const langBtn=document.getElementById('langbtn');
 function setLang(l){LANG=l;document.documentElement.lang=l==='en'?'en':'zh-Hant';document.body.classList.toggle('lang-en',l==='en');
   langBtn.innerHTML=l==='en'?'<b>EN</b><span>中</span>':'<b>中</b><span>EN</span>';langBtn.setAttribute('aria-label',l==='en'?'切換為中文':'Switch to English');
-  try{localStorage.setItem('inventec-lang',l);}catch(e){}walk(document.body);}
-langBtn.addEventListener('click',()=>setLang(LANG==='en'?'zh':'en'));
+  walk(document.body);}
+langBtn.addEventListener('click',()=>{setLang(LANG==='en'?'zh':'en');try{localStorage.setItem('inventec-lang-choice',LANG);}catch(e){}});   // only a deliberate choice is remembered
 setLang(LANG);
 
 // ---------- loop ----------
