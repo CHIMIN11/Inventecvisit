@@ -189,6 +189,18 @@ body.instudio .hud,body.instudio .tag,body.instudio .hint,body.instudio .showui{
 #w-list li small{display:block;font-size:11px;color:var(--muted);margin-top:2px}
 #w-list li.empty{border-left-color:var(--line);color:var(--muted)}
 @media (max-width:640px){.wish{top:auto;bottom:0;right:0;left:0;width:100%;border-radius:14px 14px 0 0;max-height:62%;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}body.wishing .clock{display:none}}
+.langbtn{position:fixed;z-index:14;top:calc(16px + env(safe-area-inset-top,0px));right:max(16px,env(safe-area-inset-right,0px));display:flex;align-items:center;gap:2px;padding:4px;border-radius:999px;border:1px solid var(--line);background:var(--glass);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);cursor:pointer;font:600 12px var(--f-ui)}
+.langbtn b,.langbtn span{display:grid;place-items:center;min-width:30px;height:26px;border-radius:999px;padding:0 6px}
+.langbtn b{background:var(--fg);color:var(--ink)}
+.langbtn span{color:var(--muted);font-weight:500}
+.langbtn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+body.instudio .langbtn{right:calc(max(16px,env(safe-area-inset-right,0px)) + 52px);border-color:#ead9e0;background:rgba(255,255,255,.85)}
+body.instudio .langbtn b{background:#2a2230;color:#fff}body.instudio .langbtn span{color:#7a6a74}
+body.hideui .langbtn{display:none}
+.wish:not([hidden])~.langbtn,body.wishing .langbtn{display:none}
+body.lang-en #st-en,body.lang-en .st-roster small{display:none}
+body.lang-en .title h1{font-family:var(--f-ui)}
+@media (max-width:640px){.langbtn{top:calc(10px + env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px))}.langbtn b,.langbtn span{min-width:26px;height:24px}}
 .g-note{margin:0;font-size:11px;color:var(--muted)}
 @media (max-width:640px){.guide{top:auto;right:0;left:0;bottom:0;width:100%;border-radius:14px 14px 0 0;max-height:58%;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
   body.guiding .clock,body.guiding .dial{display:none}}
@@ -306,6 +318,7 @@ body.instudio .hud,body.instudio .tag,body.instudio .hint,body.instudio .showui{
 </aside>
 <button type="button" class="tag wishtag" id="t-xmas"><svg width="13" height="13" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 1l1.8 3.8 4.2.5-3.1 2.9.8 4.1L7 10.3 3.3 12.3l.8-4.1L1 5.3l4.2-.5z" fill="currentColor"/></svg><span>許願聖誕樹</span></button>
 <div id="fade" aria-hidden="true"></div>
+<button type="button" class="langbtn" id="langbtn" aria-label="Switch to English"><b>中</b><span>EN</span></button>
 <aside class="hud wish" id="wish" hidden aria-label="聖誕許願">
   <header><div><span class="w-eyebrow">MERRY CHRISTMAS</span><h2>在聖誕樹上許個願</h2></div><button type="button" id="w-close" aria-label="關閉許願">×</button></header>
   <form id="w-form" autocomplete="off">
@@ -1748,6 +1761,106 @@ function placeMyWalker(){
 document.getElementById('se-save').addEventListener('click',()=>{myLook.saved=1;try{localStorage.setItem('inventec-my-look',JSON.stringify(myLook));}catch(e){}
   tags.splice(0,tags.length,...tags.filter(t=>!t.follow));placeMyWalker();seMsg.textContent='已儲存！回到園區就能看到你的角色在步道上散步。';playAct('happy');});
 placeMyWalker();
+
+// ---------- 中文／English 介面切換 ----------
+// Translates every visible string, aria-label, placeholder and alt in place, including text the page writes later
+// (tour steps, wish list, studio cards), and restores the original Chinese when switched back.
+const UI_EN={
+'英業達桃園科技園區 3D 模型，可拖曳旋轉':'3D model of the Inventec Taoyuan campus — drag to rotate',
+'英業達桃園科技園區':'Inventec Taoyuan Campus',
+'依空拍影像建立的園區量體模型。拖曳旋轉、滾輪或雙指縮放，右鍵平移。':'A massing model of the campus built from aerial photos. Drag to rotate, scroll or pinch to zoom, right-drag to pan.',
+'已登入訪客的累計造訪次數':'Total visits by signed-in visitors','人次來訪':'visits',
+'已登入訪客在此頁面的累計停留時間':'Total time signed-in visitors have spent here','分鐘停留':'minutes spent','人在線':'online now',
+'午後':'Afternoon','更多時段':'More times','時段':'Times','播放一天':'Play a day','暫停':'Pause','時間':'Time',
+'日出':'Sunrise','正午':'Noon','黃昏':'Dusk','夜晚':'Night','深夜':'Late night','清晨':'Dawn','上午':'Morning',
+'視角':'Views','南側鳥瞰':'South aerial','西南斜角':'Southwest','北側立面':'North facade','正上方':'Top down',
+'櫻花模式':'Cherry blossom','聖誕模式':'Christmas','員工角色':'Characters','隱藏介面':'Hide UI','顯示介面':'Show UI',
+'背景音樂':'Background music','音樂':'Music','音樂開':'Music on',
+'英業達集團 主大樓':'Inventec Main Building','進入大廳':'Enter lobby','景觀草坪':'Landscaped lawn','櫻花草坪':'Cherry lawn',
+'園區照片':'Campus photos','一樓大廳':'Ground-floor lobby','上一張':'Previous photo','下一張':'Next photo','關閉照片':'Close photo',
+'英業達桃園科技園區 · 左右拖曳瀏覽':'Inventec Taoyuan Campus · drag sideways to look around',
+'一樓大廳：格柵天花板、大理石地坪、玻璃牆面上的企業價值字樣與一排黑色花瓶陳列':'Ground-floor lobby: slatted ceiling, marble floor, corporate values on the glass wall and a row of black vases',
+'挑高大廳以白色格柵天花板與大理石地坪為主，長向玻璃牆上掛著企業價值字樣，牆前排列黑色花瓶陳列，入口側為接待櫃台與休憩座位。':'The double-height lobby has a white slatted ceiling and marble floor. The long glass wall carries the corporate values, black vases stand in front of it, and the reception desk and lounge seating are by the entrance.',
+'企業導覽員':'Campus Guide','· 點我開始導覽':'· tap to start the tour','導覽進行中':'Tour in progress',
+'企業導覽':'Company tour','導覽':'Tour','關閉導覽':'Close tour','上一步':'Back','下一步':'Next','重新導覽':'Restart tour',
+'導覽文案為示意內容，可替換為正式核稿版本。角色為程式生成的暫時版本，正式 GLB 模型完成後可直接替換。':'Tour copy is a draft and can be replaced with approved text. Characters are placeholder models until the final GLB files are ready.',
+'歡迎來到英業達桃園科技園區':'Welcome to the Inventec Taoyuan Campus',
+'你好，我是園區導覽員。接下來幾分鐘，我會帶你認識英業達，並走一圈這座桃園園區。':'Hi, I’m your campus guide. Over the next few minutes I’ll introduce Inventec and take you around the Taoyuan campus.',
+'按「下一步」繼續，也可以隨時拖曳畫面自由瀏覽。':'Press “Next” to continue, or drag the view to explore on your own at any time.',
+'五十年的科技夥伴':'Fifty years as a technology partner',
+'英業達成立於 1975 年，2025 年迎來 50 週年。早期以計算機等電子產品起步，之後一路走進個人電腦、伺服器與智慧裝置領域。':'Inventec was founded in 1975 and celebrated its 50th anniversary in 2025. It started with calculators and other electronics, then moved into PCs, servers and smart devices.',
+'今天，英業達是全球品牌與雲端服務商的重要設計與製造夥伴。':'Today Inventec is a key design and manufacturing partner for global brands and cloud service providers.',
+'核心事業與技術':'Core businesses and technology',
+'伺服器與資料中心':'Servers and data centers','：雲端與 AI 伺服器、機櫃整合與散熱設計':': cloud and AI servers, rack integration and thermal design',
+'筆記型電腦':'Notebooks','：長期為國際品牌提供產品設計與製造':': long-time design and manufacturing partner for international brands',
+'智慧裝置與物聯網':'Smart devices and IoT','：連網終端、智慧應用':': connected devices and smart applications',
+'車用電子與 5G':'Automotive electronics and 5G','：新世代通訊與移動應用':': next-generation communications and mobility',
+'園區主大樓':'The main building',
+'主大樓以白色橫向窗帶為主要立面語彙，南側的弧形翼樓迎向前廣場，頂樓兩側掛著「英業達集團 Inventec」標誌。':'The main building is defined by white horizontal window bands. The curved south wing faces the front plaza, and the “英業達集團 Inventec” sign hangs at the top on both sides.',
+'試試左下的時間軸，入夜後窗帶會逐層亮起。':'Try the timeline at the bottom left: after dark the window bands light up floor by floor.',
+'走進主大樓，一樓是挑高大廳：白色格柵天花板、大理石地坪，玻璃牆上寫著英業達的四個價值：創新、品質、虛心、力行。':'Inside the main building is a double-height lobby with a white slatted ceiling and marble floor. The glass wall shows Inventec’s four values: Innovation, Quality, Open Mind and Execution.',
+'一樓大廳照片':'Lobby photo','進入 3D 大廳':'Enter the 3D lobby',
+'綠屋頂與機電設備':'Green roof and building services',
+'屋頂中央是大面積綠屋頂，周邊環繞白色框架與步道；東側集中配置空調與機電設備。':'A large green roof covers the center, ringed by a white frame and walkway. Air-conditioning and building services are grouped on the east side.',
+'綠屋頂可以減少日照熱負荷，讓頂樓空間更涼爽。':'The green roof reduces solar heat gain and keeps the top floor cooler.',
+'景觀草坪與步道':'The lawn and garden paths',
+'大樓南側是一整片景觀草坪：石砌瀑布牆旁是睡蓮圓池與坐姿雕像，灰色連鎖磚步道沿著照明柱與石椅，串起樹林與水圳，是同仁休憩散步的地方。':'South of the building is a landscaped lawn. Beside the stone waterfall wall is a lily pond with a seated sculpture, and grey paver paths lined with lights and stone benches link the trees and the canal. It’s where colleagues take a break and walk.',
+'切換櫻花模式':'Turn on cherry blossom','關閉櫻花模式':'Turn off cherry blossom',
+'感謝你的參觀':'Thanks for visiting',
+'導覽到這裡告一段落。你可以繼續自由瀏覽園區，或按「重新導覽」再看一次。':'That’s the end of the tour. Keep exploring the campus, or press “Restart tour” to see it again.',
+'創新 Innovation':'Innovation','品質 Quality':'Quality','虛心 Open Mind':'Open Mind','力行 Execution':'Execution',
+'許願聖誕樹':'Christmas wish tree','聖誕許願':'Christmas wishes','在聖誕樹上許個願':'Make a wish on the tree','關閉許願':'Close wishes',
+'你的願望':'Your wish','例如：明年專案順利、和團隊一起去旅行':'e.g. A smooth project next year, a team trip together',
+'署名（可留空）':'Signature (optional)','署名':'Signature','掛上聖誕樹':'Hang it on the tree','願望牆':'Wish wall',
+'匿名同仁':'Anonymous colleague','還沒有人許願，成為第一個吧！':'No wishes yet. Be the first!',
+'每人最多 3 個願望，你已經許滿了。':'You can make up to 3 wishes, and you’ve used them all.','先寫下你的願望吧。':'Write your wish first.',
+'已掛上聖誕樹（只有你看得到，登入後許的願望才會分享給大家）。':'Hung on the tree. Only you can see it; wishes are shared with everyone when you’re signed in.',
+'願望已掛上聖誕樹！':'Your wish is on the tree!','你目前只有檢視權限，無法許願。':'You have view-only access, so you can’t make a wish.',
+'英業達員工角色':'Inventec Characters','關閉員工角色':'Close characters','上一位':'Previous','下一位':'Next','選擇職務':'Choose a role',
+'工業設計師':'Industrial Designer','工程師':'Engineer','研發／製造':'R&D / Manufacturing','專案管理':'Project Manager',
+'業務／客戶':'Business / Sales','人資／行政':'HR / Administration','IT／數位支援':'IT / Digital Support','我的角色':'My Character',
+'負責伺服器與終端產品的外觀、結構與使用體驗，常拿著平板畫草圖。':'Designs the look, structure and experience of servers and devices, usually sketching on a tablet.',
+'軟硬體開發與系統整合，筆電不離手。':'Develops hardware and software and integrates systems, never without a laptop.',
+'電路板設計、測試與量產導入，在實驗室和產線之間來回。':'Designs and tests circuit boards and brings them into mass production, moving between lab and line.',
+'掌握時程、資源與跨部門溝通，讓專案準時上線。':'Manages schedules, resources and cross-team communication so projects launch on time.',
+'對接全球品牌與雲端客戶，提著公事包四處拜訪。':'Works with global brands and cloud customers, briefcase in hand.',
+'招募、培訓與員工關懷，讓辦公室運作順暢。':'Handles hiring, training and employee care to keep the office running smoothly.',
+'維護網路、資安與內部系統，戴著耳機隨時支援。':'Looks after the network, security and internal systems, headset always on.',
+'自己搭配髮型、髮色、膚色、褲裝和手持道具，儲存後會在園區裡走動。':'Pick your own hairstyle, hair color, skin tone, outfit and prop. Once saved, your character walks around the campus.',
+'帶訪客認識英業達與桃園園區的導覽員。':'The guide who shows visitors around Inventec and the Taoyuan campus.',
+'打招呼':'Wave','工作中':'Working','指引導覽':'Point the way','開心':'Cheer','拖曳角色可以旋轉':'Drag the character to turn it',
+'角色名稱':'Character name','例如：KIKI':'e.g. KIKI','髮型':'Hair','髮色':'Hair color','膚色':'Skin','表情':'Face','下身':'Bottoms',
+'褲色':'Color','鞋子':'Shoes','配件':'Extras','手持':'Holding','隨機搭配':'Randomize','儲存並在園區出現':'Save and walk on campus',
+'已儲存！回到園區就能看到你的角色在步道上散步。':'Saved! Head back to the campus to see your character walking the paths.',
+'長直髮':'Long','鮑伯頭':'Bob','大波浪':'Wavy','包包頭':'Bun','短髮':'Short','刺蝟頭':'Spiky','側分':'Side part','帽子耳機':'Cap & headset',
+'微笑':'Smile','開口笑':'Big smile','短褲':'Shorts','長褲':'Trousers','白鞋':'White','黑鞋':'Black','無':'None','眼鏡':'Glasses',
+'空手':'Nothing','平板':'Tablet','筆電':'Laptop','夾板':'Clipboard','文件夾':'Folder','電路板':'Circuit board','公事包':'Briefcase',
+'大廳視角':'Lobby views','大廳全景':'Overview','企業價值牆':'Values wall','花瓶藝廊':'Vase gallery','休憩區':'Lounge','返回園區':'Back to campus'
+};
+const enRules=[
+  [/^(\d[\d,]*) 個願望$/,(m,n)=>n+(n==='1'?' wish':' wishes')],
+  [/^(.+) 的角色$/,(m,n)=>(n==='我'?'My':n+'’s')+' character'],
+  [/^(.*) · 你的願望$/,(m,n)=>(UI_EN[n]||n)+' · your wish']
+];
+function toEN(str){const t=str.trim();if(!t||!/[一-鿿]/.test(t))return str;let out=UI_EN[t];
+  if(out===undefined)for(const [re,f] of enRules){if(re.test(t)){out=t.replace(re,f);break;}}
+  if(out===undefined)return str;const lead=str.match(/^\s*/)[0],trail=str.match(/\s*$/)[0];return lead+out+trail;}
+let LANG='zh';
+try{const v=localStorage.getItem('inventec-lang');LANG=v==='en'||v==='zh'?v:(/^zh/i.test(navigator.language||'zh')?'zh':'en');}catch(e){}
+const recT=new WeakMap(),recA=new WeakMap(),ATTRS=['aria-label','placeholder','alt','title'];
+function doText(n){let r=recT.get(n);if(!r||n.data!==r.out){r={orig:n.data,out:n.data};recT.set(n,r);}const want=LANG==='en'?toEN(r.orig):r.orig;if(n.data!==want){r.out=want;n.data=want;}}
+function doEl(el){let m=recA.get(el);if(!m){m={};recA.set(el,m);}ATTRS.forEach(a=>{if(!el.hasAttribute(a))return;const v=el.getAttribute(a);let r=m[a];if(!r||v!==r.out){r=m[a]={orig:v,out:v};}const want=LANG==='en'?toEN(r.orig):r.orig;if(v!==want){r.out=want;el.setAttribute(a,want);}});}
+function walk(root){if(root.nodeType===3){doText(root);return;}if(root.nodeType!==1||root.tagName==='SCRIPT'||root.tagName==='STYLE')return;doEl(root);
+  const it=document.createTreeWalker(root,NodeFilter.SHOW_TEXT|NodeFilter.SHOW_ELEMENT,{acceptNode:n=>n.nodeType===1&&(n.tagName==='SCRIPT'||n.tagName==='STYLE')?NodeFilter.FILTER_REJECT:NodeFilter.FILTER_ACCEPT});
+  let n;while((n=it.nextNode()))n.nodeType===3?doText(n):doEl(n);}
+new MutationObserver(ms=>{for(const m of ms){if(m.type==='characterData')doText(m.target);else if(m.type==='attributes')doEl(m.target);else m.addedNodes.forEach(walk);}})
+  .observe(document.body,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:ATTRS});
+const langBtn=document.getElementById('langbtn');
+function setLang(l){LANG=l;document.documentElement.lang=l==='en'?'en':'zh-Hant';document.body.classList.toggle('lang-en',l==='en');
+  langBtn.innerHTML=l==='en'?'<b>EN</b><span>中</span>':'<b>中</b><span>EN</span>';langBtn.setAttribute('aria-label',l==='en'?'切換為中文':'Switch to English');
+  try{localStorage.setItem('inventec-lang',l);}catch(e){}walk(document.body);}
+langBtn.addEventListener('click',()=>setLang(LANG==='en'?'zh':'en'));
+setLang(LANG);
 
 // ---------- loop ----------
 function applyOffset(){const w=innerWidth,h=innerHeight;if(document.body.classList.contains('guiding')&&w<=640)camera.setViewOffset(w,h,0,h*.3,w,h);else camera.clearViewOffset();camera.updateProjectionMatrix();}
